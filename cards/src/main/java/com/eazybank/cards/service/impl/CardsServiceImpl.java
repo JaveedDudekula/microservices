@@ -1,8 +1,11 @@
 package com.eazybank.cards.service.impl;
 
 import com.eazybank.cards.constants.CardsConstants;
+import com.eazybank.cards.dto.CardsDto;
 import com.eazybank.cards.entity.Cards;
 import com.eazybank.cards.exceptions.CardAlreadyExistsException;
+import com.eazybank.cards.exceptions.ResourceNotFoundException;
+import com.eazybank.cards.mapper.CardsMapper;
 import com.eazybank.cards.repository.CardsRepository;
 import com.eazybank.cards.service.CardsService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,7 +31,7 @@ public class CardsServiceImpl implements CardsService {
         cardsRepository.save(createNewCard(mobileNumber));
     }
 
-    private Cards createNewCard(String mobileNumber){
+    private Cards createNewCard(String mobileNumber) {
         Cards card = new Cards();
         long randomCardNumber = 100000000000L + new Random().nextInt(900000000);
         card.setCardNumber(Long.toString(randomCardNumber));
@@ -38,5 +41,35 @@ public class CardsServiceImpl implements CardsService {
         card.setAmountUsed(0);
         card.setCardType(CardsConstants.CREDIT_CARD);
         return card;
+    }
+
+    @Override
+    public CardsDto fetchCard(String mobileNumber) {
+        Cards cards = cardsRepository.findByMobileNumber(mobileNumber).orElseThrow(
+                () -> new ResourceNotFoundException("Card", "mobileNumber", mobileNumber)
+        );
+        return CardsMapper.mapToCardsDto(cards, new CardsDto());
+    }
+
+    @Override
+    public boolean updateCard(CardsDto cardsDto) {
+        boolean isUpdated = false;
+        Cards existingCard = cardsRepository.findByCardNumber(cardsDto.getCardNumber()).orElseThrow(
+                () -> new ResourceNotFoundException("Card", "cardNumber", cardsDto.getCardNumber())
+        );
+        cardsRepository.save(CardsMapper.mapToCards(cardsDto, existingCard));
+        isUpdated = true;
+        return isUpdated;
+    }
+
+    @Override
+    public boolean deleteCard(String mobileNumber) {
+        boolean isDeleted = false;
+        Cards card = cardsRepository.findByMobileNumber(mobileNumber).orElseThrow(
+                () -> new ResourceNotFoundException("Card", "mobileNumber", mobileNumber)
+        );
+        cardsRepository.delete(card);
+        isDeleted = true;
+        return isDeleted;
     }
 }

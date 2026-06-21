@@ -1,4 +1,4 @@
-package com.eazybank.cards.dto;
+package com.eazybank.loans.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;

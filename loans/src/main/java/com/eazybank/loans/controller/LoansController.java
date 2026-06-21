@@ -1,11 +1,10 @@
-package com.eazybank.accounts.controller;
+package com.eazybank.loans.controller;
 
-import com.eazybank.accounts.constants.AccountsConstants;
-import com.eazybank.accounts.dto.CreateAccountsDto;
-import com.eazybank.accounts.dto.CustomerDto;
-import com.eazybank.accounts.dto.ErrorResponseDto;
-import com.eazybank.accounts.dto.ResponseDto;
-import com.eazybank.accounts.service.AccountsService;
+import com.eazybank.loans.constants.LoansConstants;
+import com.eazybank.loans.dto.ErrorResponseDto;
+import com.eazybank.loans.dto.LoansDto;
+import com.eazybank.loans.dto.ResponseDto;
+import com.eazybank.loans.service.LoansService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -30,24 +29,24 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @Tag(
-        name = "CRUD REST APIs for Accounts in EazyBank",
-        description = "APIs to create, fetch, update and delete accounts"
+        name = "CRUD REST APIs for Loans in EazyBank",
+        description = "CRUD REST APIs in EazyBank to CREATE, UPDATE, FETCH AND DELETE loan details"
 )
 @Validated
 @RestController
-@RequestMapping(value = "/api", produces = {MediaType.APPLICATION_JSON_VALUE})
-public class AccountsController {
+@RequestMapping(path = "/api", produces = MediaType.APPLICATION_JSON_VALUE)
+public class LoansController {
 
-    private final AccountsService accountsService;
+    private final LoansService loansService;
 
     @Autowired
-    public AccountsController(AccountsService accountsService) {
-        this.accountsService = accountsService;
+    public LoansController(LoansService loansService) {
+        this.loansService = loansService;
     }
 
     @Operation(
-            summary = "Create Account REST API",
-            description = "REST API to create a new Account & Customer inside EazyBank"
+            summary = "Create Loan REST API",
+            description = "REST API to create new loan inside EazyBank"
     )
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "HTTP Status CREATED"),
@@ -58,16 +57,19 @@ public class AccountsController {
             )
     })
     @PostMapping("/create")
-    public ResponseEntity<ResponseDto> createAccount(@Valid @RequestBody CreateAccountsDto createAccountsDto) {
-        accountsService.createAccount(createAccountsDto);
+    public ResponseEntity<ResponseDto> createLoanDetails(
+            @NotEmpty(message = "Mobile Number can not be a null or empty")
+            @Pattern(regexp = "(^$|[0-9]{10})", message = "Mobile Number must be 10 digits")
+            @RequestParam String mobileNumber) {
+        loansService.createLoan(mobileNumber);
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(new ResponseDto(AccountsConstants.STATUS_201, AccountsConstants.MESSAGE_201));
+                .body(new ResponseDto(LoansConstants.STATUS_201, LoansConstants.MESSAGE_201));
     }
 
     @Operation(
-            summary = "Fetch Account Details REST API",
-            description = "REST API to fetch Customer & Account details based on a mobile number"
+            summary = "Fetch Loan Details REST API",
+            description = "REST API to fetch loan details based on a mobile number"
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "HTTP Status OK"),
@@ -78,17 +80,18 @@ public class AccountsController {
             )
     })
     @GetMapping("/fetch")
-    public ResponseEntity<CustomerDto> fetchAccountDetails(
-            @Pattern(regexp = "(^$|[0-9]{10})", message = "Mobile number must be 10 digits")
-            @NotEmpty(message = "Mobile Number cannot be empty")
+    public ResponseEntity<LoansDto> fetchLoanDetails(
+            @NotEmpty(message = "Mobile Number can not be a null or empty")
+            @Pattern(regexp = "(^$|[0-9]{10})", message = "Mobile Number must be 10 digits")
             @RequestParam String mobileNumber) {
-        CustomerDto customerDto = accountsService.fetchAccount(mobileNumber);
-        return ResponseEntity.status(HttpStatus.OK).body(customerDto);
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(loansService.fetchLoan(mobileNumber));
     }
 
     @Operation(
-            summary = "Update Account Details REST API",
-            description = "REST API to update Customer & Account details based on a account number"
+            summary = "Update Loan Details REST API",
+            description = "REST API to update loan details based on a loan number"
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "HTTP Status OK"),
@@ -100,22 +103,20 @@ public class AccountsController {
             )
     })
     @PutMapping("/update")
-    public ResponseEntity<ResponseDto> updateAccountDetails(@Valid @RequestBody CustomerDto customerDto) {
-        boolean updated = accountsService.updateAccount(customerDto);
+    public ResponseEntity<ResponseDto> updateLoanDetails(@Valid @RequestBody LoansDto loansDto) {
+        boolean updated = loansService.updateLoan(loansDto);
         if (updated) {
-            return ResponseEntity
-                    .status(HttpStatus.OK)
-                    .body(new ResponseDto(AccountsConstants.STATUS_200, AccountsConstants.MESSAGE_200));
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(new ResponseDto(LoansConstants.STATUS_200, LoansConstants.MESSAGE_200));
         } else {
-            return ResponseEntity
-                    .status(HttpStatus.EXPECTATION_FAILED)
-                    .body(new ResponseDto(AccountsConstants.STATUS_417, AccountsConstants.MESSAGE_417_UPDATE));
+            return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED)
+                    .body(new ResponseDto(LoansConstants.STATUS_417, LoansConstants.MESSAGE_417_UPDATE));
         }
     }
 
     @Operation(
-            summary = "Delete Account & Customer Details REST API",
-            description = "REST API to delete Customer & Account details based on a mobile number"
+            summary = "Delete Loan Details REST API",
+            description = "REST API to delete Loan details based on a mobile number"
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "HTTP Status OK"),
@@ -127,19 +128,17 @@ public class AccountsController {
             )
     })
     @DeleteMapping("/delete")
-    public ResponseEntity<ResponseDto> deleteAccountDetails(
-            @Pattern(regexp = "(^$|[0-9]{10})", message = "Mobile number must be 10 digits")
-            @NotEmpty(message = "Mobile Number cannot be empty")
+    public ResponseEntity<ResponseDto> deleteLoanDetails(
+            @NotEmpty(message = "Mobile Number can not be a null or empty")
+            @Pattern(regexp = "(^$|[0-9]{10})", message = "Mobile Number must be 10 digits")
             @RequestParam String mobileNumber) {
-        boolean deleted = accountsService.deleteAccount(mobileNumber);
+        boolean deleted = loansService.deleteLoan(mobileNumber);
         if (deleted) {
-            return ResponseEntity
-                    .status(HttpStatus.OK)
-                    .body(new ResponseDto(AccountsConstants.STATUS_200, AccountsConstants.MESSAGE_200));
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(new ResponseDto(LoansConstants.STATUS_200, LoansConstants.MESSAGE_200));
         } else {
-            return ResponseEntity
-                    .status(HttpStatus.EXPECTATION_FAILED)
-                    .body(new ResponseDto(AccountsConstants.STATUS_417, AccountsConstants.MESSAGE_417_DELETE));
+            return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED)
+                    .body(new ResponseDto(LoansConstants.STATUS_417, LoansConstants.MESSAGE_417_DELETE));
         }
     }
 }

@@ -7,9 +7,9 @@ import org.springframework.http.HttpStatus;
 
 import java.time.LocalDateTime;
 
-@Schema(name = "ErrorResponse", description = "Schema to hold error response details")
 @Data
 @AllArgsConstructor
+@Schema(name = "ErrorResponse", description = "Schema to hold error response details")
 public class ErrorResponseDto {
 
     @Schema(description = "API path that triggered by the client", example = "/api/operation")

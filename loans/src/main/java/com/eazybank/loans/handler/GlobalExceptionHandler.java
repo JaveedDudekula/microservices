@@ -1,8 +1,8 @@
-package com.eazybank.accounts.handler;
+package com.eazybank.loans.handler;
 
-import com.eazybank.accounts.dto.ErrorResponseDto;
-import com.eazybank.accounts.exception.CustomerAlreadyExistsException;
-import com.eazybank.accounts.exception.ResourceNotFoundException;
+import com.eazybank.loans.dto.ErrorResponseDto;
+import com.eazybank.loans.exceptions.LoanAlreadyExistsException;
+import com.eazybank.loans.exceptions.ResourceNotFoundException;
 import jakarta.validation.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,15 +47,16 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
     }
 
-    @ExceptionHandler(CustomerAlreadyExistsException.class)
-    public ResponseEntity<ErrorResponseDto> handleCustomerAlreadyExistsException(
-            CustomerAlreadyExistsException ex, WebRequest request) {
+    @ExceptionHandler(LoanAlreadyExistsException.class)
+    public ResponseEntity<ErrorResponseDto> handleCardAlreadyExistsException(
+            LoanAlreadyExistsException ex, WebRequest request) {
         LOGGER.error(ex.getMessage(), ex);
         ErrorResponseDto errorResponseDto = new ErrorResponseDto(
                 request.getDescription(false),
                 HttpStatus.BAD_REQUEST,
                 ex.getMessage(),
-                LocalDateTime.now());
+                LocalDateTime.now()
+        );
         return new ResponseEntity<>(errorResponseDto, HttpStatus.BAD_REQUEST);
     }
 
@@ -67,7 +68,8 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                 request.getDescription(false),
                 HttpStatus.NOT_FOUND,
                 ex.getMessage(),
-                LocalDateTime.now());
+                LocalDateTime.now()
+        );
         return new ResponseEntity<>(errorResponseDto, HttpStatus.NOT_FOUND);
     }
 
